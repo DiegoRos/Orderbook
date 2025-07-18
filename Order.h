@@ -4,6 +4,7 @@
 #include <exception>
 #include <format>
 #include <memory>
+#include <cmath>
 
 #include "OrderType.h"
 #include "Side.h"
@@ -23,6 +24,10 @@ public:
         remainingQuantity_{ quantity }
     {}
 
+    Order(OrderId orderId, Side side, Quantity quantity)
+        : Order(OrderType::Market, orderId, side, Constants::InvalidPrice, quantity)
+    { }
+
     OrderType GetOrderType() const { return orderType_; }
     OrderId GetOrderId() const { return orderId_; } 
     Side GetSide() const { return side_; }
@@ -40,6 +45,14 @@ public:
 
      bool IsFilled() const { return GetRemainingQuantity() == 0; }
 
+     void ToGoodTillCancel(Price price)
+     {
+        if (GetOrderType() != OrderType::Market)
+            throw std::logic_error(std::format("Order ({}) cannot have its price modified as it is not a market order.\n", GetOrderId()));
+
+        if (!std::isfinite(price))
+            throw std::logic_error(std::format("Order ({}) must have a tradable price.\n", GetOrderId()));
+     }
 
 private:
     OrderType orderType_;

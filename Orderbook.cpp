@@ -106,6 +106,24 @@ Trades Orderbook::AddOrder(OrderPointer order)
     if (orders_.contains(order->GetOrderId()))
         return { };
 
+    if (order->GetOrderType() == OrderType::Market)
+    {
+        // We will essentially create a limit order for the market order, with the worst price as the upper or lower bound (depending on the side).
+        // This way the market order will buy/sell from the best available orders until it is either filled or there are no more orders to match against.
+        if (order->GetSide() == Side::Buy && !asks_.empty())
+        {
+            const auto& [worstAsk, _] = *asks_.rbegin();
+            order->ToGoodTillCancel(worstAsk);
+        }
+        else if (order->GetSide() == Side::Sell && !bids_.empty())
+        {
+            const auto& [worstBid, _] = *bids_.rbegin();
+            order->ToGoodTillCancel(worstBid);
+        }
+        else
+            return { }; // No orders to match against.
+    }
+
     if (order->GetOrderType() == OrderType::FillAndKill && !CanMatch(order->GetSide(), order->GetPrice()))
         return { };
 
