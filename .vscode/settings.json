@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "cstdint": "cpp",
-        "unordered_map": "cpp",
-        "limits": "cpp",
-        "numeric": "cpp",
-        "stack": "cpp"
-    }
-}
